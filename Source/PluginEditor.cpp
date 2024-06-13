@@ -21,9 +21,9 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     gainSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
     gainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
     gainSlider.addListener(this);
-    addAndMakeVisible(gainSlider);
-    gainLabel.setText("gain", juce::dontSendNotification);
-    gainLabel.attachToComponent(&gainSlider, true);
+//    addAndMakeVisible(gainSlider);
+//    gainLabel.setText("gain", juce::dontSendNotification);
+//    gainLabel.attachToComponent(&gainSlider, true);
 //    addAndMakeVisible(gainLabel);
     
     pitchSlider.setRange(-12.f, 12.f);
@@ -31,9 +31,9 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     pitchSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
     pitchSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
     pitchSlider.addListener(this);
-    addAndMakeVisible(pitchSlider);
-    pitchLabel.setText("pitch", juce::dontSendNotification);
-    pitchLabel.attachToComponent(&pitchSlider, true);
+//    addAndMakeVisible(pitchSlider);
+//    pitchLabel.setText("pitch", juce::dontSendNotification);
+//    pitchLabel.attachToComponent(&pitchSlider, true);
 //    addAndMakeVisible(pitchLabel);
     
     lpcSlider.setRange(0.f, 1.f);
@@ -42,7 +42,7 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     lpcSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
     lpcSlider.addListener(this);
     addAndMakeVisible(lpcSlider);
-    lpcLabel.setText("lpc", juce::dontSendNotification);
+    lpcLabel.setText("LPC mix", juce::dontSendNotification);
     lpcLabel.attachToComponent(&lpcSlider, true);
     addAndMakeVisible(lpcLabel);
 }
@@ -64,9 +64,9 @@ void VoicemorphAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    gainSlider.setBounds(20, 20, getWidth()/3-30, getHeight()-150);
-    pitchSlider.setBounds(getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
-    lpcSlider.setBounds(2*getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
+//    gainSlider.setBounds(20, 20, getWidth()/3-30, getHeight()-150);
+//    pitchSlider.setBounds(getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
+    lpcSlider.setBounds(getWidth()/2, 20, getWidth()/3-30, getHeight()-150);
 }
 
 void VoicemorphAudioProcessorEditor::sliderValueChanged(juce::Slider *slider) {
