@@ -4,7 +4,7 @@ White noise excitation source, currently only supporting mono processing. The pl
 
 Background:
 
-* Linear predictive coding: Chapter 7 of [ADSP Notes](https://course.ece.cmu.edu/~ece792/https://) by Richard Stern
+* Linear predictive coding: Chapter 7 of [ADSP Notes](https://course.ece.cmu.edu/~ece792/) by Richard Stern
 * [Levinson Durbin Recursion](http://www.emptyloop.com/technotes/A%20tutorial%20on%20linear%20prediction%20and%20Levinson-Durbin.pdf)
 
 ![Screenshot](images/gui.png)
