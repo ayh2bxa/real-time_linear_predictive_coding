@@ -22,6 +22,7 @@ VoicemorphAudioProcessor::VoicemorphAudioProcessor()
                        ), PV(1024, 16384, 0.5f, 0.667f, 2), lpc()
 #endif
 {
+//    lpc.makeWhiteGaussianNoise(0.0);
 }
 
 VoicemorphAudioProcessor::~VoicemorphAudioProcessor()

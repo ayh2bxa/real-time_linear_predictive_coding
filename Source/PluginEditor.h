@@ -35,6 +35,8 @@ private:
     juce::Label pitchLabel;
     juce::Slider lpcSlider;
     juce::Label lpcLabel;
+    juce::Slider exLenSlider;
+    juce::Label exLenLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VoicemorphAudioProcessorEditor)
 };

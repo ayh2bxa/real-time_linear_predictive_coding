@@ -134,8 +134,15 @@ void LPC::applyLPC(float *inout, int numSamples, float lpcMix) {
                     histPtr++;
                     if (histPtr >= ORDER) {
                         histPtr = 0;
+                        double max_amp = 1;
+                        for (int i = 0; i < ORDER; i++) {
+                            max_amp = std::max(max_amp, std::abs(out_hist[i]));
+                        }
+                        for (int i = 0; i < ORDER; i++) {
+                            out_hist[i] /= max_amp;
+                        }
                     }
-                    int wtIdx = outWtPtr+n;
+                    unsigned long wtIdx = outWtPtr+n;
                     if (wtIdx >= BUFLEN) {
                         wtIdx -= BUFLEN;
                     }
@@ -148,7 +155,6 @@ void LPC::applyLPC(float *inout, int numSamples, float lpcMix) {
             }
         }
     }
-    
 }
 
 void LPC::reset_a() {

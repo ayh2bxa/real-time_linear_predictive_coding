@@ -66,6 +66,8 @@ public:
     void setCurrrentGain(float val);
     void setPitchFactor(float val);
     void setLpcMix(float val);
+    PhaseVocoder PV;
+    LPC lpc;
 
 private:
     //==============================================================================
@@ -74,8 +76,5 @@ private:
     float pitchFactor = 0.f;
     float lpcMix = 0.f;
     float max_amp = 1.f;
-    
-    PhaseVocoder PV;
-    LPC lpc;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VoicemorphAudioProcessor)
 };

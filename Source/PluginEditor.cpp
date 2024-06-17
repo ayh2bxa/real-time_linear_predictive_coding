@@ -21,9 +21,9 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     gainSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
     gainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
     gainSlider.addListener(this);
-//    addAndMakeVisible(gainSlider);
-//    gainLabel.setText("gain", juce::dontSendNotification);
-//    gainLabel.attachToComponent(&gainSlider, true);
+    addAndMakeVisible(gainSlider);
+    gainLabel.setText("gain", juce::dontSendNotification);
+    gainLabel.attachToComponent(&gainSlider, true);
 //    addAndMakeVisible(gainLabel);
     
     pitchSlider.setRange(-12.f, 12.f);
@@ -31,9 +31,9 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     pitchSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
     pitchSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
     pitchSlider.addListener(this);
-//    addAndMakeVisible(pitchSlider);
-//    pitchLabel.setText("pitch", juce::dontSendNotification);
-//    pitchLabel.attachToComponent(&pitchSlider, true);
+    addAndMakeVisible(pitchSlider);
+    pitchLabel.setText("pitch", juce::dontSendNotification);
+    pitchLabel.attachToComponent(&pitchSlider, true);
 //    addAndMakeVisible(pitchLabel);
     
     lpcSlider.setRange(0.f, 1.f);
@@ -42,9 +42,19 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     lpcSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
     lpcSlider.addListener(this);
     addAndMakeVisible(lpcSlider);
-    lpcLabel.setText("LPC mix", juce::dontSendNotification);
+    lpcLabel.setText("lpc", juce::dontSendNotification);
     lpcLabel.attachToComponent(&lpcSlider, true);
     addAndMakeVisible(lpcLabel);
+    
+    exLenSlider.setRange(0.f, 1.f);
+    exLenSlider.setValue((float)(audioProcessor.lpc.get_exlen()/audioProcessor.lpc.get_max_exlen()), juce::dontSendNotification);
+    exLenSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+    exLenSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
+    exLenSlider.addListener(this);
+    addAndMakeVisible(exLenSlider);
+    exLenLabel.setText("ex len", juce::dontSendNotification);
+    exLenLabel.attachToComponent(&exLenSlider, true);
+    addAndMakeVisible(exLenLabel);
 }
 
 VoicemorphAudioProcessorEditor::~VoicemorphAudioProcessorEditor()
@@ -66,17 +76,21 @@ void VoicemorphAudioProcessorEditor::resized()
     // subcomponents in your editor..
 //    gainSlider.setBounds(20, 20, getWidth()/3-30, getHeight()-150);
 //    pitchSlider.setBounds(getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
-    lpcSlider.setBounds(getWidth()/2, 20, getWidth()/3-30, getHeight()-150);
+    lpcSlider.setBounds(2*getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
+    exLenSlider.setBounds(getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
 }
 
 void VoicemorphAudioProcessorEditor::sliderValueChanged(juce::Slider *slider) {
     if (slider == &gainSlider) {
         audioProcessor.setTargetGain(gainSlider.getValue());
     }
-    if (slider == &pitchSlider) {
+    else if (slider == &pitchSlider) {
         audioProcessor.setPitchFactor(pitchSlider.getValue());
     }
-    if (slider == &lpcSlider) {
+    else if (slider == &lpcSlider) {
         audioProcessor.setLpcMix(lpcSlider.getValue());
+    }
+    else if (slider == &exLenSlider) {
+        audioProcessor.lpc.set_exlen((int)(exLenSlider.getValue()*audioProcessor.lpc.get_max_exlen()));
     }
 }
