@@ -19,7 +19,7 @@ VoicemorphAudioProcessor::VoicemorphAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), PV(1024, 16384, 0.5f, 0.667f, 2), lpc()
+                       ), PV(1024, 16384, 0.5f, 0.667f, 2), lpc(getTotalNumInputChannels())
 #endif
 {
 //    lpc.makeWhiteGaussianNoise(0.0);
@@ -151,13 +151,9 @@ void VoicemorphAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    auto *channelData = buffer.getWritePointer(0);
-    lpc.applyLPC(channelData, buffer.getNumSamples(), lpcMix);
-    for (int ch = 1; ch < totalNumOutputChannels; ch++) {
-        auto *data = buffer.getWritePointer(ch);
-        for (int s = 0; s < buffer.getNumSamples(); s++) {
-            data[s] = channelData[s];
-        }
+    for (int ch = 0; ch < totalNumInputChannels; ch++) {
+        auto *channelData = buffer.getWritePointer(ch);
+        lpc.applyLPC(channelData, buffer.getNumSamples(), lpcMix, ch);
     }
 }
 

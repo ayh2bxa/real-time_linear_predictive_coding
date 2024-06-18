@@ -14,7 +14,7 @@ private:
     int HOPSIZE = FRAMELEN/2;
     int BUFLEN = 2*FRAMELEN;
     int SAMPLERATE = 44100;
-    int MAX_EXLEN = 2*SAMPLERATE;
+    int MAX_EXLEN = SAMPLERATE/6;
     int EXLEN = MAX_EXLEN;
     vector<double> phi;
     vector<double> a;
@@ -25,19 +25,26 @@ private:
     int exPtr;
     int histPtr;
     double max_amp;
-    vector<double> inBuf;
+    vector<vector<double>> inBuf;
     vector<double> orderedInBuf;
-    vector<double> outBuf;
+    vector<vector<double>> outBuf;
     vector<double> window;
     void levinson_durbin();
     double autocorrelate(const vector<double>& x, int lag);
     void reset_a();
-    vector<double> out_hist;
+    vector<vector<double>> out_hist;
     vector<double> noise;
+    
+    vector<int> inPtrs;
+    vector<int> smpCnts;
+    vector<int> outWtPtrs;
+    vector<int> outRdPtrs;
+    vector<int> exPtrs;
+    vector<int> histPtrs;
 public:
-    LPC();
+    LPC(int numChannels);
     bool start = false;
-    void applyLPC(float *inout, int numSamples, float lpcMix);
+    void applyLPC(float *inout, int numSamples, float lpcMix, int ch);
     void set_exlen(int val) {EXLEN = val;};
     int get_exlen() {return EXLEN;};
     int get_max_exlen() {return MAX_EXLEN;};

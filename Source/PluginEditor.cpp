@@ -42,7 +42,7 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     lpcSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
     lpcSlider.addListener(this);
     addAndMakeVisible(lpcSlider);
-    lpcLabel.setText("lpc", juce::dontSendNotification);
+    lpcLabel.setText("lpc mix", juce::dontSendNotification);
     lpcLabel.attachToComponent(&lpcSlider, true);
     addAndMakeVisible(lpcLabel);
     

@@ -1,6 +1,6 @@
 # Real-time Linear Predictive Coding (LPC)
 
-White noise excitation source, currently only supporting mono processing. The plugin to be run is "voicemorph.vst3".
+White noise excitation source, supports stereo processing. The plugin to be run is "voicemorph.vst3".
 
 Background:
 

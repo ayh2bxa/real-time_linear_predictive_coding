@@ -1,33 +1,48 @@
 #include "lpc.h"
 
-LPC::LPC() {
-    inPtr = 0;
-    smpCnt = 0;
-    outWtPtr = HOPSIZE;
-    outRdPtr = 0;
-    exPtr = 0;
-    histPtr = 0;
+LPC::LPC(int numChannels) {
+    inPtrs.resize(numChannels);
+    smpCnts.resize(numChannels);
+    outWtPtrs.resize(numChannels);
+    outRdPtrs.resize(numChannels);
+    exPtrs.resize(numChannels);
+    histPtrs.resize(numChannels);
+    for (int ch = 0; ch < numChannels; ch++) {
+        inPtrs[ch] = 0;
+        smpCnts[ch] = 0;
+        outWtPtrs[ch] = HOPSIZE;
+        outRdPtrs[ch] = 0;
+        exPtrs[ch] = 0;
+        histPtrs[ch] = 0;
+    }
     max_amp = 1;
     phi.resize(ORDER+1);
     a.resize(ORDER+1);
-    inBuf.resize(BUFLEN);
     orderedInBuf.resize(FRAMELEN);
-    outBuf.resize(BUFLEN);
     window.resize(FRAMELEN);
-    out_hist.resize(ORDER);
     noise.resize(EXLEN);
+    inBuf.resize(numChannels);
+    outBuf.resize(numChannels);
+    out_hist.resize(numChannels);
+    for (int ch = 0; ch < numChannels; ch++) {
+        inBuf[ch].resize(BUFLEN);
+        outBuf[ch].resize(BUFLEN);
+        out_hist[ch].resize(ORDER);
+        for (int i = 0; i < BUFLEN; i++) {
+            inBuf[ch][i] = 0;
+            outBuf[ch][i] = 0;
+        }
+        for (int i = 0; i < ORDER; i++) {
+            out_hist[ch][i] = 0;
+        }
+    }
     for (int i = 0; i < FRAMELEN; i++) {
         window[i] = 0.5f*(1.0f-cosf(2.0*M_PI*i/(float)(FRAMELEN-1)));
     }
     for (int i = 0; i < FRAMELEN; i++) {
         orderedInBuf[i] = 0;
     }
-    for (int i = 0; i < BUFLEN; i++) {
-        inBuf[i] = 0;
-        outBuf[i] = 0;
-    }
     for (int i = 0; i < ORDER; i++) {
-        out_hist[i] = 0;
         phi[i] = 0;
     }
     phi[ORDER] = 0;
@@ -74,17 +89,23 @@ double LPC::autocorrelate(const vector<double>& x, int lag) {
     return res;
 }
 
-void LPC::applyLPC(float *inout, int numSamples, float lpcMix) {
+void LPC::applyLPC(float *inout, int numSamples, float lpcMix, int ch) {
+    inPtr = inPtrs[ch];
+    smpCnt = smpCnts[ch];
+    outWtPtr = outWtPtrs[ch];
+    outRdPtr = outRdPtrs[ch];
+    exPtr = exPtrs[ch];
+    histPtr = histPtrs[ch];
     for (int s = 0; s < numSamples; s++) {
-        inBuf[inPtr] = inout[s];
+        inBuf[ch][inPtr] = inout[s];
         inPtr++;
         if (inPtr >= BUFLEN) {
             inPtr = 0;
         }
-        float out = outBuf[outRdPtr];
-        out = out > 1 ? 1 : (out < -1 ? -1 : out);
+        float out = outBuf[ch][outRdPtr];
+//        out = out > 1 ? 1 : (out < -1 ? -1 : out);
         inout[s] = lpcMix*out+(1-lpcMix)*inout[s];
-        outBuf[outRdPtr] = 0;
+        outBuf[ch][outRdPtr] = 0;
         outRdPtr++;
         if (outRdPtr >= BUFLEN) {
             outRdPtr = 0;
@@ -95,7 +116,7 @@ void LPC::applyLPC(float *inout, int numSamples, float lpcMix) {
             smpCnt = 0;
             for (int i = 0; i < FRAMELEN; i++) {
                 int inBufIdx = (inPtr+i-FRAMELEN+BUFLEN)%BUFLEN;
-                orderedInBuf[i] = window[i]*inBuf[inBufIdx];
+                orderedInBuf[i] = window[i]*inBuf[ch][inBufIdx];
             }
             for (int lag = 0; lag < ORDER+1; lag++) {
                 phi[lag] = autocorrelate(orderedInBuf, lag);
@@ -128,25 +149,25 @@ void LPC::applyLPC(float *inout, int numSamples, float lpcMix) {
                         if (idx < 0) {
                             idx += ORDER;
                         }
-                        out_n -= a[k+1]*out_hist[idx];
+                        out_n -= a[k+1]*out_hist[ch][idx];
                     }
-                    out_hist[histPtr] = out_n;
+                    out_hist[ch][histPtr] = out_n;
                     histPtr++;
                     if (histPtr >= ORDER) {
                         histPtr = 0;
                         double max_amp = 1;
                         for (int i = 0; i < ORDER; i++) {
-                            max_amp = std::max(max_amp, std::abs(out_hist[i]));
+                            max_amp = std::max(max_amp, std::abs(out_hist[ch][i]));
                         }
                         for (int i = 0; i < ORDER; i++) {
-                            out_hist[i] /= max_amp;
+                            out_hist[ch][i] /= max_amp;
                         }
                     }
                     unsigned long wtIdx = outWtPtr+n;
                     if (wtIdx >= BUFLEN) {
                         wtIdx -= BUFLEN;
                     }
-                    outBuf[wtIdx] += out_n;
+                    outBuf[ch][wtIdx] += out_n;
                 }
                 outWtPtr += HOPSIZE;
                 if (outWtPtr >= BUFLEN) {
@@ -155,6 +176,12 @@ void LPC::applyLPC(float *inout, int numSamples, float lpcMix) {
             }
         }
     }
+    inPtrs[ch] = inPtr;
+    smpCnts[ch] = smpCnt;
+    outWtPtrs[ch] = outWtPtr;
+    outRdPtrs[ch] = outRdPtr;
+    exPtrs[ch] = exPtr;
+    histPtrs[ch] = histPtr;
 }
 
 void LPC::reset_a() {
