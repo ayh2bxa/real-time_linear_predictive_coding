@@ -2,6 +2,8 @@
 
 White noise excitation source, supports stereo processing. The plugin to be run is "voicemorph.vst3".
 
+Certain input may cause the output to clip. Thus, input and output gain control knobs are 
+
 Background:
 
 * Linear predictive coding: Chapter 7 of [ADSP Notes](https://course.ece.cmu.edu/~ece792/) by Richard Stern
