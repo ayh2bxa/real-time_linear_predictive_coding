@@ -10,10 +10,14 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include <cmath>
 
 //==============================================================================
 /**
 */
+using namespace juce;
+using namespace std;
+
 class VoicemorphAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Slider::Listener
 {
 public:
@@ -37,6 +41,10 @@ private:
     juce::Label lpcLabel;
     juce::Slider exLenSlider;
     juce::Label exLenLabel;
+    Slider inputGainSlider;
+    Label inputGainLabel;
+    Slider outputGainSlider;
+    Label outputGainLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VoicemorphAudioProcessorEditor)
 };

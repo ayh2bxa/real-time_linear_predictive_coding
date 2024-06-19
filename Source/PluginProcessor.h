@@ -11,6 +11,7 @@
 #include <JuceHeader.h>
 #include "pitchshift.h"
 #include "lpc.h"
+#include <cmath>
 
 //==============================================================================
 /**
@@ -68,6 +69,10 @@ public:
     void setLpcMix(float val);
     PhaseVocoder PV;
     LPC lpc;
+    void setInputGain(float val) {inputGain = val;};
+    float getInputGain() {return inputGain;};
+    void setOutputGain(float val) {outputGain = val;};
+    float getOutputGain() {return outputGain;};
 
 private:
     //==============================================================================
@@ -76,5 +81,7 @@ private:
     float pitchFactor = 0.f;
     float lpcMix = 0.f;
     float max_amp = 1.f;
+    float inputGain = 1.f;
+    float outputGain = 1.f;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VoicemorphAudioProcessor)
 };

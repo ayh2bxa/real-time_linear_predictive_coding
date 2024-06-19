@@ -153,7 +153,13 @@ void VoicemorphAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     // interleaved by keeping the same state.
     for (int ch = 0; ch < totalNumInputChannels; ch++) {
         auto *channelData = buffer.getWritePointer(ch);
+        for (int s = 0; s < buffer.getNumSamples(); s++) {
+            channelData[s] *= inputGain;
+        }
         lpc.applyLPC(channelData, buffer.getNumSamples(), lpcMix, ch);
+        for (int s = 0; s < buffer.getNumSamples(); s++) {
+            channelData[s] *= outputGain;
+        }
     }
 }
 

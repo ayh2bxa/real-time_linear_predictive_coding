@@ -24,7 +24,6 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     addAndMakeVisible(gainSlider);
     gainLabel.setText("gain", juce::dontSendNotification);
     gainLabel.attachToComponent(&gainSlider, true);
-//    addAndMakeVisible(gainLabel);
     
     pitchSlider.setRange(-12.f, 12.f);
     pitchSlider.setValue(audioProcessor.getPitchFactor(), juce::dontSendNotification);
@@ -34,7 +33,6 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     addAndMakeVisible(pitchSlider);
     pitchLabel.setText("pitch", juce::dontSendNotification);
     pitchLabel.attachToComponent(&pitchSlider, true);
-//    addAndMakeVisible(pitchLabel);
     
     lpcSlider.setRange(0.f, 1.f);
     lpcSlider.setValue(audioProcessor.getLpcMix(), juce::dontSendNotification);
@@ -55,6 +53,26 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     exLenLabel.setText("ex len", juce::dontSendNotification);
     exLenLabel.attachToComponent(&exLenSlider, true);
     addAndMakeVisible(exLenLabel);
+    
+    inputGainSlider.setRange(-40, 10);
+    inputGainSlider.setValue(20*log10(audioProcessor.getInputGain()), juce::dontSendNotification);
+    inputGainSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
+    inputGainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
+    inputGainSlider.addListener(this);
+    addAndMakeVisible(inputGainSlider);
+    inputGainLabel.setText("input gain", juce::dontSendNotification);
+    inputGainLabel.attachToComponent(&inputGainSlider, true);
+    addAndMakeVisible(inputGainLabel);
+
+    outputGainSlider.setRange(-40, 10);
+    outputGainSlider.setValue(20*log10(audioProcessor.getOutputGain()), juce::dontSendNotification);
+    outputGainSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
+    outputGainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
+    outputGainSlider.addListener(this);
+    addAndMakeVisible(outputGainSlider);
+    outputGainLabel.setText("output gain", juce::dontSendNotification);
+    outputGainLabel.attachToComponent(&outputGainSlider, true);
+    addAndMakeVisible(outputGainLabel);
 }
 
 VoicemorphAudioProcessorEditor::~VoicemorphAudioProcessorEditor()
@@ -74,8 +92,8 @@ void VoicemorphAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-//    gainSlider.setBounds(20, 20, getWidth()/3-30, getHeight()-150);
-//    pitchSlider.setBounds(getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
+    inputGainSlider.setBounds(20, 20, getWidth()/3-30, getHeight()/3);
+    outputGainSlider.setBounds(20, 50+getHeight()/3, getWidth()/3-30, getHeight()/3);
     lpcSlider.setBounds(2*getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
     exLenSlider.setBounds(getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
 }
@@ -92,5 +110,11 @@ void VoicemorphAudioProcessorEditor::sliderValueChanged(juce::Slider *slider) {
     }
     else if (slider == &exLenSlider) {
         audioProcessor.lpc.set_exlen((int)(exLenSlider.getValue()*audioProcessor.lpc.get_max_exlen()));
+    }
+    else if (slider == &inputGainSlider) {
+        audioProcessor.setInputGain(pow(10.0, inputGainSlider.getValue()/20));
+    }
+    else if (slider == &outputGainSlider) {
+        audioProcessor.setOutputGain(pow(10.0, outputGainSlider.getValue()/20));
     }
 }
