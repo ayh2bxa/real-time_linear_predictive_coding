@@ -103,7 +103,7 @@ void LPC::applyLPC(float *inout, int numSamples, float lpcMix, int ch) {
             inPtr = 0;
         }
         float out = outBuf[ch][outRdPtr];
-//        out = out > 1 ? 1 : (out < -1 ? -1 : out);
+        out = out > 1 ? 1 : (out < -1 ? -1 : out);
         inout[s] = lpcMix*out+(1-lpcMix)*inout[s];
         outBuf[ch][outRdPtr] = 0;
         outRdPtr++;
