@@ -2,7 +2,7 @@
 
 White noise excitation source, supports stereo processing. The plugin to be run is "voicemorph.vst3".
 
-Certain input may cause the output to clip. Thus, input and output gain control knobs are 
+Certain input may cause the output to clip. Thus, input and output gain control knobs are included.
 
 Background:
 
