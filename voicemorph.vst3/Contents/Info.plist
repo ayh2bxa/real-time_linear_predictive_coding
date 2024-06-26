@@ -46,5 +46,7 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires audio input. If you do not have an audio interface connected it will use the built-in microphone.</string>
 </dict>
 </plist>
