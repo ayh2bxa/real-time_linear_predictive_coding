@@ -80,25 +80,25 @@ std::vector<float> loadWavToBuffer(const juce::File& file)
 }
 
 void VoicemorphAudioProcessor::loadFactoryExcitations() {
-    juce::File bassyTrainFile{"...wav"};
+    juce::File bassyTrainFile{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/BassyTrainNoise.wav"};
     factoryExcitations.push_back(loadWavToBuffer(bassyTrainFile));
     excitationDropdown.addItem("BassyTrainNoise", 1);
-    juce::File cherubScreamsFile{"...wav"};
+    juce::File cherubScreamsFile{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/CherubScreams.wav"};
     factoryExcitations.push_back(loadWavToBuffer(cherubScreamsFile));
     excitationDropdown.addItem("CherubScreams", 2);
-    juce::File micScratchFile{"...wav"};
+    juce::File micScratchFile{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/MicScratch.wav"};
     factoryExcitations.push_back(loadWavToBuffer(micScratchFile));
     excitationDropdown.addItem("MicScratch", 3);
-    juce::File ringFile{"...wav"};
+    juce::File ringFile{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/Ring.wav"};
     factoryExcitations.push_back(loadWavToBuffer(ringFile));
     excitationDropdown.addItem("Ring", 4);
-    juce::File trainScreech1File{"...wav"};
+    juce::File trainScreech1File{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/TrainScreech1.wav"};
     factoryExcitations.push_back(loadWavToBuffer(trainScreech1File));
     excitationDropdown.addItem("TrainScreech1", 5);
-    juce::File trainScreech2File{"...wav"};
+    juce::File trainScreech2File{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/TrainScreech2.wav"};
     factoryExcitations.push_back(loadWavToBuffer(trainScreech2File));
     excitationDropdown.addItem("TrainScreech2", 6);
-    juce::File whiteNoiseFile{"...wav"};
+    juce::File whiteNoiseFile{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/WhiteNoise.wav"};
     factoryExcitations.push_back(loadWavToBuffer(whiteNoiseFile));
     excitationDropdown.addItem("WhiteNoise", 7);
     excitationDropdown.setSelectedId(1);
