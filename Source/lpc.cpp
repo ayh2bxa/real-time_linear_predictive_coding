@@ -7,6 +7,7 @@ LPC::LPC(int numChannels) {
     outRdPtrs.resize(numChannels);
     exPtrs.resize(numChannels);
     histPtrs.resize(numChannels);
+    exCntPtrs.resize(numChannels);
     for (int ch = 0; ch < numChannels; ch++) {
         inPtrs[ch] = 0;
         smpCnts[ch] = 0;
@@ -14,13 +15,13 @@ LPC::LPC(int numChannels) {
         outRdPtrs[ch] = 0;
         exPtrs[ch] = 0;
         histPtrs[ch] = 0;
+        exCntPtrs[ch] = 0;
     }
     max_amp = 1;
     phi.resize(ORDER+1);
     a.resize(ORDER+1);
     orderedInBuf.resize(FRAMELEN);
     window.resize(FRAMELEN);
-    noise.resize(EXLEN);
     inBuf.resize(numChannels);
     outBuf.resize(numChannels);
     out_hist.resize(numChannels);
@@ -47,19 +48,6 @@ LPC::LPC(int numChannels) {
     }
     phi[ORDER] = 0;
     reset_a();
-    std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0.0, 1.0);
-    for (int i = 0; i < EXLEN; i++) {
-        noise[i] = distribution(generator);
-    }
-    for (int i = 0; i < EXLEN; i++) {
-        if (abs(noise[i]) > max_amp) {
-            max_amp = abs(noise[i]);
-        }
-    }
-    for (int i = 0; i < EXLEN; i++) {
-        noise[i] /= (1.1*max_amp);
-    }
 }
 
 void LPC::levinson_durbin() {
@@ -89,13 +77,26 @@ double LPC::autocorrelate(const vector<double>& x, int lag) {
     return res;
 }
 
-void LPC::applyLPC(float *inout, int numSamples, float lpcMix, int ch) {
+void LPC::applyLPC(float *inout, int numSamples, float lpcMix, float exPercentage, int ch, float exStartPos) {
     inPtr = inPtrs[ch];
     smpCnt = smpCnts[ch];
     outWtPtr = outWtPtrs[ch];
     outRdPtr = outRdPtrs[ch];
+    if (exTypeChanged) {
+        exPtrs[ch] = (int)(EXLEN*exStartPos);
+        exCntPtrs[ch] = 0;
+        histPtrs[ch] = 0;
+    }
+    if (orderChanged) {
+        for (int i = 0; i < out_hist[ch].size(); i++) {
+            out_hist[ch][i] = 0;
+        }
+//        histPtrs[ch] = 0;
+    }
     exPtr = exPtrs[ch];
+    exCntPtr = exCntPtrs[ch];
     histPtr = histPtrs[ch];
+    int exStart = (int)(exStartPos*EXLEN);
     for (int s = 0; s < numSamples; s++) {
         inBuf[ch][inPtr] = inout[s];
         inPtr++;
@@ -103,7 +104,6 @@ void LPC::applyLPC(float *inout, int numSamples, float lpcMix, int ch) {
             inPtr = 0;
         }
         float out = outBuf[ch][outRdPtr];
-        out = out > 1 ? 1 : (out < -1 ? -1 : out);
         inout[s] = lpcMix*out+(1-lpcMix)*inout[s];
         outBuf[ch][outRdPtr] = 0;
         outRdPtr++;
@@ -136,10 +136,15 @@ void LPC::applyLPC(float *inout, int numSamples, float lpcMix, int ch) {
                     residual *= residual;
                     err += residual;
                 }
-                double G = sqrt(err)/FRAMELEN;
+                double G = sqrt(err/ORDER)/FRAMELEN;
                 for (int n = 0; n < FRAMELEN; n++) {
-                    double ex = noise[exPtr];
+                    double ex = (*noise)[exPtr];
                     exPtr++;
+                    exCntPtr++;
+                    if (exCntPtr >= (int)(exPercentage*EXLEN)) {
+                        exCntPtr = 0;
+                        exPtr = exStart;
+                    }
                     if (exPtr >= EXLEN) {
                         exPtr = 0;
                     }
@@ -155,13 +160,6 @@ void LPC::applyLPC(float *inout, int numSamples, float lpcMix, int ch) {
                     histPtr++;
                     if (histPtr >= ORDER) {
                         histPtr = 0;
-                        double max_amp = 1;
-                        for (int i = 0; i < ORDER; i++) {
-                            max_amp = std::max(max_amp, std::abs(out_hist[ch][i]));
-                        }
-                        for (int i = 0; i < ORDER; i++) {
-                            out_hist[ch][i] /= max_amp;
-                        }
                     }
                     unsigned long wtIdx = outWtPtr+n;
                     if (wtIdx >= BUFLEN) {

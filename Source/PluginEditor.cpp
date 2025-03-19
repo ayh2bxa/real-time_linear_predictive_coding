@@ -10,73 +10,71 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
+    : AudioProcessorEditor (&p), audioProcessor (p), excitationDropdown (p.getExcitationDropdown())
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (800, 400);
-    gainSlider.setRange(0.f, 1.f);
-    gainSlider.setValue(audioProcessor.getCurrentGain(), juce::dontSendNotification);
-    gainSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-    gainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
-    gainSlider.addListener(this);
-    addAndMakeVisible(gainSlider);
-    gainLabel.setText("gain", juce::dontSendNotification);
-    gainLabel.attachToComponent(&gainSlider, true);
-    
-    pitchSlider.setRange(-12.f, 12.f);
-    pitchSlider.setValue(audioProcessor.getPitchFactor(), juce::dontSendNotification);
-    pitchSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-    pitchSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
-    pitchSlider.addListener(this);
-    addAndMakeVisible(pitchSlider);
-    pitchLabel.setText("pitch", juce::dontSendNotification);
-    pitchLabel.attachToComponent(&pitchSlider, true);
-    
-    lpcSlider.setRange(0.f, 1.f);
-    lpcSlider.setValue(audioProcessor.getLpcMix(), juce::dontSendNotification);
-    lpcSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+    lpcSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     lpcSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
-    lpcSlider.addListener(this);
     addAndMakeVisible(lpcSlider);
-    lpcLabel.setText("lpc mix", juce::dontSendNotification);
-    lpcLabel.attachToComponent(&lpcSlider, true);
+    lpcLabel.setText("LPC Mix", juce::dontSendNotification);
+    lpcLabel.attachToComponent(&lpcSlider, false);
     addAndMakeVisible(lpcLabel);
+    lpcMixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(vts, "lpc mix", lpcSlider);
     
-    exLenSlider.setRange(0.f, 1.f);
-    exLenSlider.setValue((float)(audioProcessor.lpc.get_exlen()/audioProcessor.lpc.get_max_exlen()), juce::dontSendNotification);
-    exLenSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+    exLenSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     exLenSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
-    exLenSlider.addListener(this);
     addAndMakeVisible(exLenSlider);
-    exLenLabel.setText("ex len", juce::dontSendNotification);
-    exLenLabel.attachToComponent(&exLenSlider, true);
+    exLenLabel.setText("Length", juce::dontSendNotification);
+    exLenLabel.attachToComponent(&exLenSlider, false);
     addAndMakeVisible(exLenLabel);
+    exLenAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(vts, "ex len", exLenSlider);
+
+    exStartSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
+    exStartSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
+    addAndMakeVisible(exStartSlider);
+    exStartLabel.setText("Start", juce::dontSendNotification);
+    exStartLabel.attachToComponent(&exStartSlider, false);
+    addAndMakeVisible(exStartLabel);
+    exStartAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(vts, "ex start pos", exStartSlider);
     
-    inputGainSlider.setRange(-40, 10);
-    inputGainSlider.setValue(20*log10(audioProcessor.getInputGain()), juce::dontSendNotification);
+    orderSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
+    orderSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
+    addAndMakeVisible(orderSlider);
+    orderLabel.setText("Order", juce::dontSendNotification);
+    orderLabel.attachToComponent(&orderSlider, false);
+    addAndMakeVisible(orderLabel);
+    orderAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(vts, "lpc order", orderSlider);
+    
     inputGainSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     inputGainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
-    inputGainSlider.addListener(this);
     addAndMakeVisible(inputGainSlider);
-    inputGainLabel.setText("input gain", juce::dontSendNotification);
-    inputGainLabel.attachToComponent(&inputGainSlider, true);
+    inputGainLabel.setText("Input Gain", juce::dontSendNotification);
+    inputGainLabel.attachToComponent(&inputGainSlider, false);
     addAndMakeVisible(inputGainLabel);
+    inputGainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(vts, "input gain", inputGainSlider);
 
-    outputGainSlider.setRange(-40, 10);
-    outputGainSlider.setValue(20*log10(audioProcessor.getOutputGain()), juce::dontSendNotification);
     outputGainSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     outputGainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
-    outputGainSlider.addListener(this);
     addAndMakeVisible(outputGainSlider);
-    outputGainLabel.setText("output gain", juce::dontSendNotification);
-    outputGainLabel.attachToComponent(&outputGainSlider, true);
+    outputGainLabel.setText("Output Gain", juce::dontSendNotification);
+    outputGainLabel.attachToComponent(&outputGainSlider, false);
     addAndMakeVisible(outputGainLabel);
+    outputGainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(vts, "output gain", outputGainSlider);
+    
+    addAndMakeVisible(excitationDropdown);
+    excitationDropdown.addListener(this);
+    setSize (600, 600);
 }
 
 VoicemorphAudioProcessorEditor::~VoicemorphAudioProcessorEditor()
 {
+    outputGainAttachment.reset();
+    inputGainAttachment.reset();
+    exLenAttachment.reset();
+    lpcMixAttachment.reset();
+    exStartAttachment.reset();
+    orderAttachment.reset();
+    excitationDropdown.removeListener(this);
 }
 
 //==============================================================================
@@ -92,29 +90,26 @@ void VoicemorphAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    inputGainSlider.setBounds(20, 20, getWidth()/3-30, getHeight()/3);
-    outputGainSlider.setBounds(20, 50+getHeight()/3, getWidth()/3-30, getHeight()/3);
-    lpcSlider.setBounds(2*getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
-    exLenSlider.setBounds(getWidth()/3, 20, getWidth()/3-30, getHeight()-150);
+    lpcSlider.setBoundsRelative(0.05, 0.2, 0.2, 0.2);
+    exLenSlider.setBoundsRelative(0.3, 0.2, 0.2, 0.2);
+    exStartSlider.setBoundsRelative(0.55, 0.2, 0.2, 0.2);
+    orderSlider.setBoundsRelative(0.05, 0.45, 0.2, 0.2);
+    inputGainSlider.setBoundsRelative(0.3, 0.45, 0.2, 0.2);
+    outputGainSlider.setBoundsRelative(0.55, 0.45, 0.2, 0.2);
+    excitationDropdown.setBoundsRelative(0.05, 0.8, 0.25, 0.05);
 }
 
-void VoicemorphAudioProcessorEditor::sliderValueChanged(juce::Slider *slider) {
-    if (slider == &gainSlider) {
-        audioProcessor.setTargetGain(gainSlider.getValue());
-    }
-    else if (slider == &pitchSlider) {
-        audioProcessor.setPitchFactor(pitchSlider.getValue());
-    }
-    else if (slider == &lpcSlider) {
-        audioProcessor.setLpcMix(lpcSlider.getValue());
-    }
-    else if (slider == &exLenSlider) {
-        audioProcessor.lpc.set_exlen((int)(exLenSlider.getValue()*audioProcessor.lpc.get_max_exlen()));
-    }
-    else if (slider == &inputGainSlider) {
-        audioProcessor.setInputGain(pow(10.0, inputGainSlider.getValue()/20));
-    }
-    else if (slider == &outputGainSlider) {
-        audioProcessor.setOutputGain(pow(10.0, outputGainSlider.getValue()/20));
+void VoicemorphAudioProcessorEditor::sliderValueChanged(juce::Slider* slider)
+{
+    // Handle slider change events if needed
+    // For now, you can leave it empty
+}
+
+void VoicemorphAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged)
+{
+    // Handle combo box change events if needed
+    // For now, you can leave it empty
+    if (comboBoxThatHasChanged == &excitationDropdown) {
+        audioProcessor.apvts.getParameterAsValue("ex type").setValue(excitationDropdown.getSelectedId()-1);
     }
 }

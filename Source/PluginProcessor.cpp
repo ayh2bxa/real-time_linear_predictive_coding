@@ -14,19 +14,94 @@ VoicemorphAudioProcessor::VoicemorphAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), PV(1024, 16384, 0.5f, 0.667f, 2), lpc(getTotalNumInputChannels())
+                       ), 
+lpc(2), apvts(*this, nullptr, "param", Utility::ParameterHelper::createParameterLayout())
 #endif
 {
-//    lpc.makeWhiteGaussianNoise(0.0);
+    loadFactoryExcitations();
 }
 
 VoicemorphAudioProcessor::~VoicemorphAudioProcessor()
 {
+}
+
+// Function to load a WAV file into a vector<float>
+std::vector<float> loadWavToBuffer(const juce::File& file)
+{
+    // Check if the file exists
+    if (!file.existsAsFile())
+    {
+        DBG("File not found: " + file.getFullPathName());
+        return {};
+    }
+    // Step 1: Register the available audio formats (WAV, AIFF, etc.)
+    juce::AudioFormatManager formatManager;
+    formatManager.registerBasicFormats();
+
+    // Step 2: Create an AudioFormatReader for the file
+    std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
+    if (reader == nullptr)
+    {
+        // Failed to open file; return an empty vector
+        return {};
+    }
+
+    // Step 3: Create an AudioBuffer to hold the samples.
+    // reader->lengthInSamples gives the total number of samples per channel.
+    const int numChannels = static_cast<int>(reader->numChannels);
+    const int numSamples = static_cast<int>(reader->lengthInSamples);
+    juce::AudioBuffer<float> buffer(numChannels, numSamples);
+
+    // Read the samples into the buffer.
+    reader->read(&buffer,           // destination buffer
+                 0,                 // start writing at sample 0 in the buffer
+                 numSamples,        // number of samples to read
+                 0,                 // starting sample in the source file
+                 true,              // use left channel if numChannels < expected?
+                 true);             // use right channel
+
+    // Step 4: Convert AudioBuffer data to a single vector<float>.
+    // In this example, we average the samples across all channels.
+    std::vector<float> audioData(numSamples, 0.0f);
+    for (int sample = 0; sample < numSamples; ++sample)
+    {
+        float mixedSample = 0.0f;
+        for (int channel = 0; channel < numChannels; ++channel)
+        {
+            mixedSample += buffer.getReadPointer(channel)[sample];
+        }
+        audioData[sample] = mixedSample / numChannels;
+    }
+
+    return audioData;
+}
+
+void VoicemorphAudioProcessor::loadFactoryExcitations() {
+    juce::File bassyTrainFile{"...wav"};
+    factoryExcitations.push_back(loadWavToBuffer(bassyTrainFile));
+    excitationDropdown.addItem("BassyTrainNoise", 1);
+    juce::File cherubScreamsFile{"...wav"};
+    factoryExcitations.push_back(loadWavToBuffer(cherubScreamsFile));
+    excitationDropdown.addItem("CherubScreams", 2);
+    juce::File micScratchFile{"...wav"};
+    factoryExcitations.push_back(loadWavToBuffer(micScratchFile));
+    excitationDropdown.addItem("MicScratch", 3);
+    juce::File ringFile{"...wav"};
+    factoryExcitations.push_back(loadWavToBuffer(ringFile));
+    excitationDropdown.addItem("Ring", 4);
+    juce::File trainScreech1File{"...wav"};
+    factoryExcitations.push_back(loadWavToBuffer(trainScreech1File));
+    excitationDropdown.addItem("TrainScreech1", 5);
+    juce::File trainScreech2File{"...wav"};
+    factoryExcitations.push_back(loadWavToBuffer(trainScreech2File));
+    excitationDropdown.addItem("TrainScreech2", 6);
+    juce::File whiteNoiseFile{"...wav"};
+    factoryExcitations.push_back(loadWavToBuffer(whiteNoiseFile));
+    excitationDropdown.addItem("WhiteNoise", 7);
+    excitationDropdown.setSelectedId(1);
 }
 
 //==============================================================================
@@ -135,31 +210,22 @@ void VoicemorphAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int ch = 0; ch < totalNumInputChannels; ch++) {
+    float lpcMix = apvts.getParameterAsValue("lpc mix").getValue();
+    float percentage = apvts.getParameterAsValue("ex len").getValue();
+    float exStartPos = apvts.getParameterAsValue("ex start pos").getValue();
+    int prevExType = lpc.exType;
+    lpc.exType = apvts.getParameterAsValue("ex type").getValue();
+    lpc.noise = &factoryExcitations[lpc.exType];
+    lpc.EXLEN = (*lpc.noise).size();
+    int prevOrder = lpc.ORDER;
+    lpc.ORDER = apvts.getParameterAsValue("lpc order").getValue();
+    lpc.orderChanged = prevOrder != lpc.ORDER;
+    lpc.exTypeChanged = prevExType != lpc.exType;
+    for (int ch = 0; ch < totalNumOutputChannels; ch++) {
         auto *channelData = buffer.getWritePointer(ch);
-        for (int s = 0; s < buffer.getNumSamples(); s++) {
-            channelData[s] *= inputGain;
-        }
-        lpc.applyLPC(channelData, buffer.getNumSamples(), lpcMix, ch);
-        for (int s = 0; s < buffer.getNumSamples(); s++) {
-            channelData[s] *= outputGain;
-        }
+        lpc.applyLPC(channelData, buffer.getNumSamples(), lpcMix, percentage, ch, exStartPos);
     }
 }
 
@@ -171,7 +237,7 @@ bool VoicemorphAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* VoicemorphAudioProcessor::createEditor()
 {
-    return new VoicemorphAudioProcessorEditor (*this);
+    return new VoicemorphAudioProcessorEditor (*this, apvts);
 }
 
 //==============================================================================
@@ -221,6 +287,7 @@ void VoicemorphAudioProcessor::setCurrrentGain(float val) {
 
 void VoicemorphAudioProcessor::setPitchFactor(float val) {
     pitchFactor = val;
+//    PV.setPitchShift(pitchFactor);
 }
 
 void VoicemorphAudioProcessor::setLpcMix(float val) {

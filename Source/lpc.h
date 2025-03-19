@@ -2,20 +2,17 @@
 #include <array>
 #include <random>
 #include <cmath>
-//#include "constants.h"
-//#include "signalsmith-fft.h"
+#include <JuceHeader.h>
 
 using namespace std;
 
 class LPC {
 private:
-    int ORDER = 25;
     int FRAMELEN = 882;
     int HOPSIZE = FRAMELEN/2;
     int BUFLEN = 2*FRAMELEN;
     int SAMPLERATE = 44100;
     int MAX_EXLEN = SAMPLERATE/6;
-    int EXLEN = MAX_EXLEN;
     vector<double> phi;
     vector<double> a;
     int inPtr;
@@ -24,6 +21,7 @@ private:
     int smpCnt;
     int exPtr;
     int histPtr;
+    int exCntPtr;
     double max_amp;
     vector<vector<double>> inBuf;
     vector<double> orderedInBuf;
@@ -33,19 +31,26 @@ private:
     double autocorrelate(const vector<double>& x, int lag);
     void reset_a();
     vector<vector<double>> out_hist;
-    vector<double> noise;
     
     vector<int> inPtrs;
     vector<int> smpCnts;
     vector<int> outWtPtrs;
     vector<int> outRdPtrs;
     vector<int> exPtrs;
+    vector<int> exCntPtrs;
     vector<int> histPtrs;
+
 public:
     LPC(int numChannels);
     bool start = false;
-    void applyLPC(float *inout, int numSamples, float lpcMix, int ch);
+    void applyLPC(float *inout, int numSamples, float lpcMix, float exPercentage, int ch, float exStartPos);
     void set_exlen(int val) {EXLEN = val;};
     int get_exlen() {return EXLEN;};
     int get_max_exlen() {return MAX_EXLEN;};
+    const std::vector<float>* noise = nullptr;
+    int EXLEN = MAX_EXLEN;
+    int ORDER = 100;
+    int exType = 0;
+    bool orderChanged = false;
+    bool exTypeChanged = false;
 };

@@ -11,12 +11,17 @@
 #include <JuceHeader.h>
 #include "pitchshift.h"
 #include "lpc.h"
+#include "ParameterHelper.h"
 #include <cmath>
 
 //==============================================================================
 /**
 */
-class VoicemorphAudioProcessor  : public juce::AudioProcessor
+
+using namespace juce;
+using namespace std;
+
+class VoicemorphAudioProcessor  : public juce::AudioProcessor, public ValueTree::Listener
                             #if JucePlugin_Enable_ARA
                              , public juce::AudioProcessorARAExtension
                             #endif
@@ -67,13 +72,14 @@ public:
     void setCurrrentGain(float val);
     void setPitchFactor(float val);
     void setLpcMix(float val);
-    PhaseVocoder PV;
     LPC lpc;
     void setInputGain(float val) {inputGain = val;};
     float getInputGain() {return inputGain;};
     void setOutputGain(float val) {outputGain = val;};
     float getOutputGain() {return outputGain;};
-
+    
+    ComboBox& getExcitationDropdown() {return excitationDropdown;};
+    AudioProcessorValueTreeState apvts;
 private:
     //==============================================================================
     float targetGain = 0.f;
@@ -83,5 +89,13 @@ private:
     float max_amp = 1.f;
     float inputGain = 1.f;
     float outputGain = 1.f;
+    ComboBox excitationDropdown;
+    
+    void loadFactoryExcitations();
+    juce::File writeBinaryDataToTempFile(const void* data, int size, const juce::String& fileName);
+    vector<vector<float>> factoryExcitations;
+//    AudioProcessorValueTreeState::ParameterLayout makeParamLayout();
+//    void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VoicemorphAudioProcessor)
 };

@@ -1,26 +1,15 @@
-/*
-  ==============================================================================
-
-    pitchshift.h
-    Created: 6 Jan 2024 9:05:35pm
-    Author:  Anthony Hong
-
-  ==============================================================================
-*/
-
 #pragma once
 
-#include <JuceHeader.h>
-#include "signalsmith-fft.h"
-//#include "constants.h"
 #include <cmath>
+#include <vector>
+#include <iostream>
+#include <random>
+#include "signalsmith-fft.h"
 
 class PhaseVocoder {
 public:
     PhaseVocoder(int fftSize, int bufferSize, float ampFactor, float pitchFactor, int numChannels);
     void applyPV(float *data, int numSamples, int channel);
-    void setPitchShift(float in);
-//    std::vector<std::vector<float>> outBuf;
 private:
     std::vector<int> inPtr;
     std::vector<int> outWtPtr;
@@ -28,6 +17,7 @@ private:
     int bufLen;
     std::vector<float> window;
     std::vector<std::vector<float>> inBuf;
+    std::vector<std::vector<float>> outBuf;
     std::vector<std::vector<float>> prevPhase;
     std::vector<std::vector<float>> outPrevPhase;
     float ampScale;
@@ -36,7 +26,6 @@ private:
     float pitchShift;
     int smpCnt;
     std::vector<std::vector<float>> orderedInBuf;
-    std::vector<std::vector<float>> outBuf;
     std::vector<std::vector<std::complex<float>>> spectrum;
     std::vector<std::vector<float>> td;
     signalsmith::RealFFT<float> fft;
