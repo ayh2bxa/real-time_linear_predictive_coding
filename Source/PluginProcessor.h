@@ -64,38 +64,14 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
     
-    float getTargetGain();
-    float getCurrentGain();
-    float getPitchFactor();
-    float getLpcMix();
-    void setTargetGain(float val);
-    void setCurrrentGain(float val);
-    void setPitchFactor(float val);
-    void setLpcMix(float val);
     LPC lpc;
-    void setInputGain(float val) {inputGain = val;};
-    float getInputGain() {return inputGain;};
-    void setOutputGain(float val) {outputGain = val;};
-    float getOutputGain() {return outputGain;};
     
-    ComboBox& getExcitationDropdown() {return excitationDropdown;};
     AudioProcessorValueTreeState apvts;
 private:
-    //==============================================================================
-    float targetGain = 0.f;
-    float currentGain = 0.f;
-    float pitchFactor = 0.f;
-    float lpcMix = 0.f;
-    float max_amp = 1.f;
-    float inputGain = 1.f;
-    float outputGain = 1.f;
-    ComboBox excitationDropdown;
     
     void loadFactoryExcitations();
     juce::File writeBinaryDataToTempFile(const void* data, int size, const juce::String& fileName);
     vector<vector<float>> factoryExcitations;
-//    AudioProcessorValueTreeState::ParameterLayout makeParamLayout();
-//    void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VoicemorphAudioProcessor)
 };

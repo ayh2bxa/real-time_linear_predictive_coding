@@ -39,8 +39,7 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" microphonePermissionNeeded="1">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="voicemorph" optimisation="1"
-                       extraLinkerFlags="-fsanitize=address&#10;" extraCompilerFlags="-fsanitize=address -fno-omit-frame-pointer&#10;"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="voicemorph" optimisation="1"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="voicemorph"/>
       </CONFIGURATIONS>
       <MODULEPATHS>

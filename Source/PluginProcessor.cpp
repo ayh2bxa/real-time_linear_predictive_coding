@@ -82,26 +82,24 @@ std::vector<float> loadWavToBuffer(const juce::File& file)
 void VoicemorphAudioProcessor::loadFactoryExcitations() {
     juce::File bassyTrainFile{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/BassyTrainNoise.wav"};
     factoryExcitations.push_back(loadWavToBuffer(bassyTrainFile));
-    excitationDropdown.addItem("BassyTrainNoise", 1);
+    
     juce::File cherubScreamsFile{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/CherubScreams.wav"};
     factoryExcitations.push_back(loadWavToBuffer(cherubScreamsFile));
-    excitationDropdown.addItem("CherubScreams", 2);
+    
     juce::File micScratchFile{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/MicScratch.wav"};
     factoryExcitations.push_back(loadWavToBuffer(micScratchFile));
-    excitationDropdown.addItem("MicScratch", 3);
+    
     juce::File ringFile{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/Ring.wav"};
     factoryExcitations.push_back(loadWavToBuffer(ringFile));
-    excitationDropdown.addItem("Ring", 4);
+    
     juce::File trainScreech1File{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/TrainScreech1.wav"};
     factoryExcitations.push_back(loadWavToBuffer(trainScreech1File));
-    excitationDropdown.addItem("TrainScreech1", 5);
+    
     juce::File trainScreech2File{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/TrainScreech2.wav"};
     factoryExcitations.push_back(loadWavToBuffer(trainScreech2File));
-    excitationDropdown.addItem("TrainScreech2", 6);
+    
     juce::File whiteNoiseFile{"/Users/anthony/Desktop/Careers/portfolio/linear_predictive_coding/resources/excitations/WhiteNoise.wav"};
     factoryExcitations.push_back(loadWavToBuffer(whiteNoiseFile));
-    excitationDropdown.addItem("WhiteNoise", 7);
-    excitationDropdown.setSelectedId(1);
 }
 
 //==============================================================================
@@ -207,26 +205,26 @@ bool VoicemorphAudioProcessor::isBusesLayoutSupported (const BusesLayout& layout
 
 void VoicemorphAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-    float lpcMix = apvts.getParameterAsValue("lpc mix").getValue();
-    float percentage = apvts.getParameterAsValue("ex len").getValue();
-    float exStartPos = apvts.getParameterAsValue("ex start pos").getValue();
-    int prevExType = lpc.exType;
-    lpc.exType = apvts.getParameterAsValue("ex type").getValue();
-    lpc.noise = &factoryExcitations[lpc.exType];
-    lpc.EXLEN = (*lpc.noise).size();
-    int prevOrder = lpc.ORDER;
-    lpc.ORDER = apvts.getParameterAsValue("lpc order").getValue();
-    lpc.orderChanged = prevOrder != lpc.ORDER;
-    lpc.exTypeChanged = prevExType != lpc.exType;
-    for (int ch = 0; ch < totalNumOutputChannels; ch++) {
-        auto *channelData = buffer.getWritePointer(ch);
-        lpc.applyLPC(channelData, buffer.getNumSamples(), lpcMix, percentage, ch, exStartPos);
-    }
+//    juce::ScopedNoDenormals noDenormals;
+//    auto totalNumInputChannels  = getTotalNumInputChannels();
+//    auto totalNumOutputChannels = getTotalNumOutputChannels();
+//    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+//        buffer.clear (i, 0, buffer.getNumSamples());
+//    float lpcMix = apvts.getParameterAsValue("lpc mix").getValue();
+//    float percentage = apvts.getParameterAsValue("ex len").getValue();
+//    float exStartPos = apvts.getParameterAsValue("ex start pos").getValue();
+//    int prevExType = lpc.exType;
+//    lpc.exType = apvts.getParameterAsValue("ex type").getValue();
+//    lpc.noise = &factoryExcitations[lpc.exType];
+//    lpc.EXLEN = (*lpc.noise).size();
+//    int prevOrder = lpc.ORDER;
+//    lpc.ORDER = apvts.getParameterAsValue("lpc order").getValue();
+//    lpc.orderChanged = prevOrder != lpc.ORDER;
+//    lpc.exTypeChanged = prevExType != lpc.exType;
+//    for (int ch = 0; ch < totalNumOutputChannels; ch++) {
+//        auto *channelData = buffer.getWritePointer(ch);
+//        lpc.applyLPC(channelData, buffer.getNumSamples(), lpcMix, percentage, ch, exStartPos);
+//    }
 }
 
 //==============================================================================
@@ -259,37 +257,4 @@ void VoicemorphAudioProcessor::setStateInformation (const void* data, int sizeIn
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new VoicemorphAudioProcessor();
-}
-
-float VoicemorphAudioProcessor::getTargetGain() {
-    return targetGain;
-}
-
-float VoicemorphAudioProcessor::getCurrentGain() {
-    return currentGain;
-}
-
-float VoicemorphAudioProcessor::getPitchFactor() {
-    return pitchFactor;
-}
-
-float VoicemorphAudioProcessor::getLpcMix() {
-    return lpcMix;
-}
-
-void VoicemorphAudioProcessor::setTargetGain(float val) {
-    targetGain = val;
-}
-
-void VoicemorphAudioProcessor::setCurrrentGain(float val) {
-    currentGain = val;
-}
-
-void VoicemorphAudioProcessor::setPitchFactor(float val) {
-    pitchFactor = val;
-//    PV.setPitchShift(pitchFactor);
-}
-
-void VoicemorphAudioProcessor::setLpcMix(float val) {
-    lpcMix = val;
 }

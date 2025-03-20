@@ -33,7 +33,7 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     VoicemorphAudioProcessor& audioProcessor;
-    ComboBox& excitationDropdown;
+    ComboBox excitationDropdown;
     juce::Slider lpcSlider;
     juce::Label lpcLabel;
     juce::Slider exLenSlider;

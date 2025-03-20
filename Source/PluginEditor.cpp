@@ -11,7 +11,7 @@
 
 //==============================================================================
 VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
-    : AudioProcessorEditor (&p), audioProcessor (p), excitationDropdown (p.getExcitationDropdown())
+    : AudioProcessorEditor (&p), audioProcessor (p)
 {
     lpcSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     lpcSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 100, 25);
@@ -61,8 +61,18 @@ VoicemorphAudioProcessorEditor::VoicemorphAudioProcessorEditor (VoicemorphAudioP
     addAndMakeVisible(outputGainLabel);
     outputGainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(vts, "output gain", outputGainSlider);
     
+    excitationDropdown.addItem("BassyTrainNoise", 1);
+    excitationDropdown.addItem("CherubScreams", 2);
+    excitationDropdown.addItem("MicScratch", 3);
+    excitationDropdown.addItem("Ring", 4);
+    excitationDropdown.addItem("TrainScreech1", 5);
+    excitationDropdown.addItem("TrainScreech2", 6);
+    excitationDropdown.addItem("WhiteNoise", 7);
     addAndMakeVisible(excitationDropdown);
     excitationDropdown.addListener(this);
+    int exType = vts.getParameterAsValue("ex type").getValue();
+    excitationDropdown.setSelectedId(1+exType, juce::dontSendNotification);
+    
     setSize (600, 600);
 }
 
